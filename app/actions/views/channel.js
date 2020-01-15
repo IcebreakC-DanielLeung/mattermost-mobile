@@ -38,7 +38,7 @@ import {
 import {getCurrentTeamId, getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 
 import {alertErrorWithFallback} from 'app/utils/general';
-import {channelIsReachable} from 'app/utils/url';
+import {channelIsReachable, teamIsReachable} from 'app/utils/url';
 
 import {t} from 'app/utils/i18n';
 
@@ -73,9 +73,18 @@ export function loadChannelsByTeamName(teamName) {
         const {currentTeamId} = state.entities.teams;
         const team = getTeamByName(state, teamName);
 
-        if (team && team.id !== currentTeamId) {
+        if (!team) {
+            return {
+                id: t('mobile.server_link.unreachable_team.error'),
+                defaultMessage: 'Problem with team: Could be malformed name. Could be non-existent. Could exist, but not be a member.',
+            };
+        }
+
+        if (team.id !== currentTeamId) {
             await dispatch(fetchMyChannelsAndMembers(team.id));
         }
+
+        return null;
     };
 }
 
@@ -414,8 +423,18 @@ export function handleSelectChannelByName(intl, channelName, teamName) {
         const response = await dispatch(getChannelByNameAndTeamName(teamName || currentTeamName, channelName));
         const {error, data: channel} = response;
         const currentChannelId = getCurrentChannelId(state);
-        const reachable = channelIsReachable(state, channelName);
 
+        let reachable = teamIsReachable(state, teamName);
+        if (!reachable) {
+            const accessError = {
+                id: t('mobile.server_link.unreachable_team.error'),
+                defaultMessage: 'Problem with team: Could be malformed name. Could be non-existent. Could exist, but not be a member.',
+            };
+
+            alertErrorWithFallback(intl, {}, accessError);
+        }
+
+        reachable = channelIsReachable(state, channelName);
         if (!reachable) {
             const accessError = {
                 id: t('mobile.server_link.unreachable_channel.error'),

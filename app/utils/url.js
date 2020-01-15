@@ -5,6 +5,7 @@ import {latinise} from './latinise.js';
 import {escapeRegex} from './markdown';
 
 import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {Files} from 'mattermost-redux/constants';
 
 import {DeepLinkTypes} from 'app/constants';
@@ -127,9 +128,24 @@ export function channelIsReachable(state, channelName) {
     const myChannels = getMyChannels(state);
     const nameMatch = myChannels.find((channel) => channel.name === channelName);
 
+    // Replace with return !!nameMatch or equivalent?
+
     if (!nameMatch) {
         return false;
     }
+
+    return true;
+}
+
+export function teamIsReachable(teamName) {
+    console.warn('here');
+    // const myTeams = getMyTeams();
+    // console.warn(myTeams);
+//     const nameMatch = myTeams.find((team) => team.name === teamName);
+//
+//     if (!nameMatch) {
+//         return false;
+//     }
 
     return true;
 }

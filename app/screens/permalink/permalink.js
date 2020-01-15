@@ -143,7 +143,7 @@ export default class Permalink extends PureComponent {
         this.state = {
             title: channelName,
             loading,
-            error: '',
+            error: this.props.error || '',
             retry: false,
             channelIdState: channelId,
             channelNameState: channelName,

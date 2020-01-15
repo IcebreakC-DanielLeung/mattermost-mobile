@@ -15,7 +15,10 @@ import {DeepLinkTypes, ListTypes} from 'app/constants';
 import mattermostManaged from 'app/mattermost_managed';
 import {makeExtraData} from 'app/utils/list_view';
 import {changeOpacity} from 'app/utils/theme';
-import {matchDeepLink} from 'app/utils/url';
+import {matchDeepLink, teamIsReachable} from 'app/utils/url';
+
+import {alertErrorWithFallback} from 'app/utils/general';
+// import {t} from 'app/utils/i18n';
 import telemetry from 'app/telemetry';
 import {showModalOverCurrentContext} from 'app/actions/navigation';
 
@@ -205,14 +208,20 @@ export default class PostList extends PureComponent {
         this.setState({postListHeight: height});
     };
 
-    handlePermalinkPress = (postId, teamName) => {
+    handlePermalinkPress = async (postId, teamName) => {
         telemetry.start(['post_list:permalink']);
         const {actions, onPermalinkPress} = this.props;
+        const {intl} = this.context;
 
         if (onPermalinkPress) {
             onPermalinkPress(postId, true);
         } else {
-            actions.loadChannelsByTeamName(teamName);
+            const error = await actions.loadChannelsByTeamName(teamName);
+            if (error) {
+                alertErrorWithFallback(intl, {}, error);
+                return null;
+            }
+            // this.showPermalinkView(postId, error);
             this.showPermalinkView(postId);
         }
     };
@@ -404,7 +413,6 @@ export default class PostList extends PureComponent {
 
     showPermalinkView = (postId) => {
         const {actions} = this.props;
-
         actions.selectFocusedPostId(postId);
 
         if (!this.showingPermalink) {
