@@ -175,17 +175,18 @@ export default class PostList extends PureComponent {
 
     handleDeepLink = (url) => {
         const {serverURL, siteURL} = this.props;
+        const {intl} = this.context;
 
         const match = matchDeepLink(url, serverURL, siteURL);
 
         if (match) {
             if (match.type === DeepLinkTypes.CHANNEL) {
-                this.props.actions.handleSelectChannelByName(match.channelName, match.teamName);
+                this.props.actions.handleSelectChannelByName(intl, match.channelName, match.teamName);
             } else if (match.type === DeepLinkTypes.PERMALINK) {
                 this.handlePermalinkPress(match.postId, match.teamName);
             }
         } else {
-            const {formatMessage} = this.context.intl;
+            const {formatMessage} = intl;
             Alert.alert(
                 formatMessage({
                     id: 'mobile.server_link.error.title',

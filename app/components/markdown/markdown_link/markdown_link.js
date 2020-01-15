@@ -12,8 +12,6 @@ import {DeepLinkTypes} from 'app/constants';
 import {getCurrentServerUrl} from 'app/init/credentials';
 import mattermostManaged from 'app/mattermost_managed';
 import BottomSheet from 'app/utils/bottom_sheet';
-import {alertErrorWithFallback} from 'app/utils/general';
-import {t} from 'app/utils/i18n';
 import {preventDoubleTap} from 'app/utils/tap';
 import {matchDeepLink, normalizeProtocol} from 'app/utils/url';
 
@@ -43,6 +41,8 @@ export default class MarkdownLink extends PureComponent {
 
     handlePress = preventDoubleTap(async () => {
         const {href, onPermalinkPress, serverURL, siteURL} = this.props;
+        const {intl} = this.context;
+
         const url = normalizeProtocol(href);
 
         if (!url) {
@@ -58,16 +58,7 @@ export default class MarkdownLink extends PureComponent {
 
         if (match) {
             if (match.type === DeepLinkTypes.CHANNEL) {
-                const error = await this.props.actions.handleSelectChannelByName(match.channelName, match.teamName);
-
-                if (error) {
-                    const linkFailedMessage = {
-                        id: t('mobile.server_link.private_channel.error'),
-                        defaultMessage: 'You are not a member of this private channel.',
-                    };
-
-                    alertErrorWithFallback(this.context.intl, {}, linkFailedMessage);
-                }
+                this.props.actions.handleSelectChannelByName(intl, match.channelName, match.teamName);
             } else if (match.type === DeepLinkTypes.PERMALINK) {
                 onPermalinkPress(match.postId, match.teamName);
             }

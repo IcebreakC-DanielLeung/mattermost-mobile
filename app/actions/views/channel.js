@@ -37,6 +37,11 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 
+import {alertErrorWithFallback} from 'app/utils/general';
+import {channelIsReachable} from 'app/utils/url';
+
+import {t} from 'app/utils/i18n';
+
 import telemetry from 'app/telemetry';
 
 import {
@@ -400,7 +405,7 @@ export function handleSelectChannel(channelId, fromPushNotification = false) {
     };
 }
 
-export function handleSelectChannelByName(channelName, teamName) {
+export function handleSelectChannelByName(intl, channelName, teamName) {
     return async (dispatch, getState) => {
         const state = getState();
         const {teams: currentTeams, currentTeamId} = state.entities.teams;
@@ -409,7 +414,18 @@ export function handleSelectChannelByName(channelName, teamName) {
         const response = await dispatch(getChannelByNameAndTeamName(teamName || currentTeamName, channelName));
         const {error, data: channel} = response;
         const currentChannelId = getCurrentChannelId(state);
+        const reachable = channelIsReachable(state, channelName);
 
+        if (!reachable) {
+            const accessError = {
+                id: t('mobile.server_link.unreachable_channel.error'),
+                defaultMessage: 'Problem with channel: Could be malformed name. Could be non-existent. Could be private. Could be public, with no access.',
+            };
+
+            alertErrorWithFallback(intl, {}, accessError);
+        }
+
+        // Fallback to API response error, if any.
         if (error) {
             return {error};
         }

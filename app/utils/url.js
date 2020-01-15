@@ -4,6 +4,7 @@
 import {latinise} from './latinise.js';
 import {escapeRegex} from './markdown';
 
+import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {Files} from 'mattermost-redux/constants';
 
 import {DeepLinkTypes} from 'app/constants';
@@ -120,6 +121,17 @@ export function matchDeepLink(url, serverURL, siteURL) {
     }
 
     return null;
+}
+
+export function channelIsReachable(state, channelName) {
+    const myChannels = getMyChannels(state);
+    const nameMatch = myChannels.find((channel) => channel.name === channelName);
+
+    if (!nameMatch) {
+        return false;
+    }
+
+    return true;
 }
 
 export function getYouTubeVideoId(link) {
